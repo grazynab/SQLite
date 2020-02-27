@@ -1,76 +1,78 @@
-import database
 import movie
 import exceptions
+import console
 
 class MovieRepository:
 
-    def __init__(self):
-        self.database = database.Database()
+    def __init__(self, database):
+        self.database = database
 
-    def addFromObject(self, movieObject):
+    def add(self, movie):  #tu trzeba będzie podawać
         insertQuery = """INSERT INTO 'movie'
                     ('Title', 'Director_Id', 'Distributor_Id', 'Release_Date', 'Running_Time', 'Production_Budget',
                     'US_DVD_Sales', 'US_Gross', 'Worldwide_Gross', 'IMDB_Rating REAL', 'IMDB_Votes', 'MPAA_Rating',
                     'Rotten_Tomatoes_Rating', 'Creative_type', 'Source')
                     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"""
-        self.database.executeQuery(insertQuery, (movieObject.title, movieObject.director, movieObject.distributor,
-                                                 movieObject.releaseDate, movieObject.runningTime,
-                                                 movieObject.productionBudget, movieObject.USDVDSales,
-                                                 movieObject.USGross, movieObject.worldwideGross, movieObject.IMDBRating,
-                                                 movieObject.IMDBVotes, movieObject.MPAARating,
-                                                 movieObject.rottenTomatoesRating, movieObject.creativeType,
-                                                 movieObject.source))
-        if movieObject.director == None:
-            raise exceptions.NoDirectorException()
-
-
-
-    def addFromTuple(self, movie):
-        insertQuery = """INSERT INTO 'movie'
-                    ('Title', 'Director_Id', 'Distributor_Id', 'Release_Date', 'Running_Time', 'Production_Budget',
-                    'US_DVD_Sales', 'US_Gross', 'Worldwide_Gross', 'IMDB_Rating REAL', 'IMDB_Votes', 'MPAA_Rating',
-                    'Rotten_Tomatoes_Rating', 'Creative_type', 'Source')
-                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);"""
-        self.database.executeQuery(insertQuery, movie)
+        self.database.executeQuery(insertQuery, (movie.title, movie.director, movie.distributor,
+                                                 movie.releaseDate, movie.runningTime,
+                                                 movie.productionBudget, movie.USDVDSales,
+                                                 movie.USGross, movie.worldwideGross, movie.IMDBRating,
+                                                 movie.IMDBVotes, movie.MPAARating,
+                                                 movie.rottenTomatoesRating, movie.creativeType,
+                                                 movie.source))
 
     def find(self, Id):
         selectQuery = """SELECT * FROM 'movie'
                         WHERE Id = (?);"""
         self.database.executeQuery(selectQuery, (Id,))
         record = self.database.cursor.fetchone()
-        movieObject = movie.Movie()
-        movieObject.loadFromRow(record)
-        return movieObject
+        foundMovie = movie.Movie()
+        foundMovie.loadFromRow(record)
+        if foundMovie is None:
+            raise exceptions.NoDataFoundException()
+        return foundMovie
 
-    def findByName(self, name):
+    def findByTitle(self, title):
         selectQuery = """SELECT * FROM 'movie'
-                    WHERE Name = (?);"""
-        self.database.executeQuery(selectQuery, (name,))
+                    WHERE Title = (?);"""
+        self.database.executeQuery(selectQuery, (title,))
         record = self.database.cursor.fetchone()
-        object = movie.Movie()
-        object.loadFromRow(record)
-        return object
+        foundMovie = movie.Movie()
+        foundMovie.loadFromRow(record)
+        return foundMovie
+
+    def findMoviesByDirector(self, directorId):
+        selectQuery = """SELECT * FROM 'movie'
+                                            WHERE Director_Id = (?);"""
+        self.database.executeQuery(selectQuery, (directorId,))
+        records = self.database.cursor.fetchall()
+        movieList = []
+        for item in records:
+            foundMovie = movie.Movie()
+            foundMovie.loadFromRow(item)
+            movieList.append(foundMovie)
+        return movieList
 
     def removeByName(self, name):
         deleteQuery = """DELETE FROM 'movie'
                     WHERE Name IS (?);"""
         self.database.executeQuery(deleteQuery, (name,))
 
-    def update(self, movieObject):
+    def update(self, movie):
         updateQuery = """UPDATE 'movie'
                     SET ('Title', 'Director_Id', 'Distributor_Id', 'Release_Date', 'Running_Time',
                     'Production_Budget', 'US_DVD_Sales', 'US_Gross', 'Worldwide_Gross', 'IMDB_Rating REAL', 'IMDB_Votes',
                     'MPAA_Rating', 'Rotten_Tomatoes_Rating', 'Creative_type', 'Source')
                     = (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     WHERE Id = (?)"""
-        self.database.executeQuery(updateQuery, (movieObject.title, movieObject.director, movieObject.distributor,
-                                                 movieObject.releaseDate, movieObject.runningTime,
-                                                 movieObject.productionBudget, movieObject.USDVDSales,
-                                                 movieObject.USGross, movieObject.worldwideGross,
-                                                 movieObject.IMDBRating,
-                                                 movieObject.IMDBVotes, movieObject.MPAARating,
-                                                 movieObject.RottenTomatoesRating, movieObject.creativeType,
-                                                 movieObject.source, movieObject.id))
+        self.database.executeQuery(updateQuery, (movie.title, movie.director, movie.distributor,
+                                                 movie.releaseDate, movie.runningTime,
+                                                 movie.productionBudget, movie.USDVDSales,
+                                                 movie.USGross, movie.worldwideGross,
+                                                 movie.IMDBRating,
+                                                 movie.IMDBVotes, movie.MPAARating,
+                                                 movie.RottenTomatoesRating, movie.creativeType,
+                                                 movie.source, movie.id))
 
     def updateName(self, name, newname):
         updateQuery = """UPDATE 'director'
@@ -78,4 +80,5 @@ class MovieRepository:
                     WHERE Name = (?);"""
         values = (newname, name)
         self.database.executeQuery(updateQuery, values)
+
 

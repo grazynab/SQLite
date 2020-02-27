@@ -1,65 +1,58 @@
 import database
 import director
-
+from exceptions import NoDataFoundException
+import console
 
 class DirectorRepository:
 
-    def __init__(self):
-        self.database = database.Database()
+    def __init__(self, database):
+        self.database = database
 
-    def addFromObject(self, directorObject):
+    def add(self, director):
         insertQuery = """INSERT INTO 'director'
                     ('Name', 'Birth_year', 'Death_year', 'Nationality')
                     VALUES (?,?,?,?);"""
-        self.database.executeQuery(insertQuery, (directorObject.name, directorObject.birthYear,
-                                                 directorObject.deathYear, directorObject.nationality))
-
-    def addFromTuple(self, director):  # director = (name, birthYear, deathYear, nationality)
-        insertQuery = """INSERT INTO 'director'
-                    ('Name', 'Birth_year', 'Death_year', 'Nationality')
-                    VALUES (?,?,?,?);"""
-        self.database.executeQuery(insertQuery, director)
-
-    def addManyFromTuples(self, directors):  # list of tuples including name, birthYear, deathYear, nationality
-        insertManyQuery = """INSERT INTO 'director'
-                        ('Name', 'Birth_year', 'Death_year', 'Nationality')
-                        VALUES (?, ?, ?, ?);"""
-        self.database.executeMany(insertManyQuery, directors)
+        self.database.executeQuery(insertQuery, (director.name, director.birthYear,
+                                                 director.deathYear, director.nationality))
 
     def find(self, Id):
         selectQuery = """SELECT * FROM 'director'
-                    WHERE Id = (?);"""
+                        WHERE Id = (?);"""
         self.database.executeQuery(selectQuery, (Id,))
         record = self.database.cursor.fetchone()
-        directorObject = director.Director()
-        directorObject.loadFromRow(record)
-        return directorObject
+        foundDirector = director.Director()
+        foundDirector.loadFromRow(record)
+        if foundDirector is None:
+            raise NoDataFoundException()
+        return foundDirector  # tu wyjątek jeśli nie ma wyników?
 
     def findByName(self, name):
         selectQuery = """SELECT * FROM 'director'
                     WHERE Name = (?);"""
         self.database.executeQuery(selectQuery, (name,))
         record = self.database.cursor.fetchone()
-        object = director.Director()
-        object.loadFromRow(record)
-        return object
+        foundDirector = director.Director()
+        foundDirector.loadFromRow(record)
+        return foundDirector
 
     def removeByName(self, name):
         deleteQuery = """DELETE FROM 'director'
                     WHERE Name IS (?);"""
         self.database.executeQuery(deleteQuery, (name,))
 
-    def update(self, directorObject):
+    def update(self, director):
         updateQuery = """UPDATE 'director'
                     ('Name', 'Birth_year', 'Death_year', 'Nationality')
                     = (?, ?, ?, ?)
                     WHERE Id = (?)"""
-        self.database.executeQuery(updateQuery, (directorObject.name, directorObject.birthYear, directorObject.deathYear,
-                                                 directorObject.nationality, directorObject.id))
+        self.database.executeQuery(updateQuery, (director.name, director.birthYear, director.deathYear,
+                                                 director.nationality, director.id))
 
-    def updateName(self, name, newname):
-        updateQuery = """UPDATE 'director'
-                    SET Name = (?)
-                    WHERE Name = (?);"""
-        values = (newname, name)
-        self.database.executeQuery(updateQuery, values)
+    # def updateName(self, name, newname):
+    #     updateQuery = """UPDATE 'director'
+    #                 SET Name = (?)
+    #                 WHERE Name = (?);"""
+    #     values = (newname, name)
+    #     self.database.executeQuery(updateQuery, values)
+
+

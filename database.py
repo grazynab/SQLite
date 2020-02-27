@@ -7,27 +7,28 @@ class Database:
 
     def __init__(self):
         self.database = 'SQLite_Python.db'
-        self.sqliteConnection = self.connectToOrCreateDatabase(self.database)
-        self.cursor = self.createCursor()
+        self.sqliteConnection = None
+        self.cursor = None
         self.jsonFile = self.openJsonFile("/home/gb/Pobrane/movies.json")
         self.movies = self.loadJsonFile(self.jsonFile)
         self.columns = self.getColumnNames()  # to powinny być parametry wprowadzane dla danej instancji?
-
-    def connectToOrCreateDatabase(self, database):
-        try:
-            sqliteConnection = sqlite3.connect(database)
-            sqliteConnection.row_factory = sqlite3.Row  # teraz fetch zwraca obiekt z dostępem po kluczach(nazwy kolumn)
-            return sqliteConnection
-        except sqlite3.Error as error:
-            print("Error while creating a sqlite table", error)
+                                                #argumenty programów konsoli w Pythonie
 
     def createCursor(self):
-        return self.sqliteConnection.cursor()  # tu musi być jakieś try?
+        self.cursor = self.sqliteConnection.cursor()  # tu musi być jakieś try?
+
+    def connectToOrCreateDatabase(self):
+        try:
+            self.sqliteConnection = sqlite3.connect(self.database)
+            self.sqliteConnection.row_factory = sqlite3.Row  # teraz fetch zwraca obiekt z dostępem po kluczach(nazwy kolumn)
+            self.createCursor()
+        except sqlite3.Error as error:  # tu swój wyjątek
+            print("Error while creating a sqlite table", error)
 
     def closeConnection(self):
         if self.sqliteConnection:
             self.sqliteConnection.close()
-            print("Sqlite connection is closed.")  # czy to powinno być od razu w funkcjach jako finally?
+            print("Sqlite connection is closed.")
 
     def dropTable(self, table):
         try:

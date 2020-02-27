@@ -1,12 +1,13 @@
 import director
+import exceptions
 
 
 class Movie:
 
-    def __init__(self, director):
+    def __init__(self):  #było: director (obiekt) i wtedy self.director = director.id
         self.id = None
         self.title = None
-        self.director = director.id
+        self.director = None
         self.distributor = None
         self.releaseDate = None
         self.runningTime = None
@@ -21,7 +22,10 @@ class Movie:
         self.creativeType = None
         self.source = None
 
-    # def loadFromDict(self, movies, movieID):
+    def __str__(self):
+        return "Movie id: " + str(self.id) + " Title: " + self.title
+
+    # def loadFromDict(self, movies, movieID):  #to potrzebne do wczytywania z .json
     #     movie = movies[movieID]
     #     self.title = movie['Title']
     #     self.director = None
@@ -40,18 +44,20 @@ class Movie:
     #     self.source = movie['Source']
 
     def loadFromRow(self, rowObject):
+        if rowObject == None:
+            raise exceptions.EmptyRowObjectException
         self.id = rowObject['Id']
         self.title = rowObject['Title']
         self.director = rowObject['Director_Id']
         self.distributor = rowObject['Distributor_Id']
         self.releaseDate = rowObject['Release_Date']
-        self.runningTime = rowObject['Running_Time_min']
+        self.runningTime = rowObject['Running_Time']
         self.productionBudget = rowObject['Production_Budget']
         self.USDVDSales = rowObject['US_DVD_Sales']
         self.USGross = rowObject['US_Gross']
         self.worldwideGross = rowObject['Worldwide_Gross']
         self.IMDBRating = rowObject['IMDB_Rating']
-        self.IBDBVotes = rowObject['IMDB_Votes']
+        self.IMDBVotes = rowObject['IMDB_Votes']
         self.MPAARating = rowObject['MPAA_Rating']
         self.rottenTomatoesRating = rowObject['Rotten_Tomatoes_Rating']
         self.creativeType = rowObject['Creative_Type']
